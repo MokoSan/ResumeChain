@@ -50,6 +50,8 @@ def read_and_save_file():
         st.session_state["user_input"] = ""
 
         file = st.session_state["file_uploader"]
+        if (file == None):
+            return
 
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write(file.getbuffer())

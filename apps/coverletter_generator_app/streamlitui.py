@@ -27,6 +27,9 @@ def read_and_save_file():
         st.session_state["messages"] = []
 
         file = st.session_state["file_uploader"]
+        if (file == None):
+            return
+
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write(file.getbuffer())
             file_path = tf.name
@@ -42,7 +45,7 @@ def read_and_save_file():
             print(e)
     except Exception as ex:
         print(ex)
-        st.session_state["messages"].append(("The pdf uploaded is Invalid and not of a resume. Please upload another one.", False))
+        st.session_state["messages"].append(("The pdf uploaded is invalid and not of a resume. Please upload another one.", False))
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
