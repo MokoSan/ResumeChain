@@ -84,7 +84,8 @@ def run() -> None:
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    st.text_area("2. Enter a Job Description", 
+    st.subheader("2. Enter a Job Description")
+    st.text_area("Job Description", 
                   key="user_input", 
                   disabled=not is_openai_api_key_set(), 
                   on_change=process_input)
