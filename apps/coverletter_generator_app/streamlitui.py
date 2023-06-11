@@ -23,27 +23,31 @@ def display_messages():
     st.session_state["thinking_spinner"] = st.empty()
 
 def read_and_save_file():
-    st.session_state["messages"] = []
-    st.session_state["user_input"] = ""
+    try:
+        st.session_state["messages"] = []
+        st.session_state["user_input"] = ""
 
-    for file in st.session_state["file_uploader"]:
-        with tempfile.NamedTemporaryFile(delete=False) as tf:
-            tf.write(file.getbuffer())
-            file_path = tf.name
+        for file in st.session_state["file_uploader"]:
+            with tempfile.NamedTemporaryFile(delete=False) as tf:
+                tf.write(file.getbuffer())
+                file_path = tf.name
 
-        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
-            resume_extractor = ResumeExtractor(file_path)
-            resume_details = json.loads(resume_extractor.extract_details())
-            if resume_details["is_resume"]:
-                coverletter_generator = CoverLetterGenerator(resume_details)
-                st.session_state["messages"].append((coverletter_generator.get_coverletter(), False))
-            else:
-                st.session_state["messages"].append(("The pdf uploaded wasn't that of a Resume.",False))
+            with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
+                resume_extractor = ResumeExtractor(file_path)
+                resume_details = json.loads(resume_extractor.extract_details())
+                if resume_details["is_resume"]:
+                    coverletter_generator = CoverLetterGenerator(resume_details)
+                    st.session_state["messages"].append((coverletter_generator.get_coverletter(), False))
+                else:
+                    st.session_state["messages"].append(("The pdf uploaded wasn't that of a Resume.",False))
 
-        try:
-            os.remove(file_path)
-        except Exception as e:
-            print(e)
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                print(e)
+    except Exception as ex:
+        st.session_state["messages"].append(("The pdf uploaded is Invalid and not of a resume. Please upload another one.", False))
+        
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
