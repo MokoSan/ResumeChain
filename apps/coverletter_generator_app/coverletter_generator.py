@@ -44,48 +44,16 @@ class ResumeExtractor(object):
         5. What is the candidate's highest education and field of study?"""
         return self.ask(query_to_extract_info)
 
-class JobDescriptionExtractor(object):
-    def __init__(self, path : str):
-        # Precondition checks.
-        if path == "" or path == None:
-            raise ValueError(f"The path provided: {path} is not a valid path.")
-
-        self.path = path
-        self.loader = TextLoader(path, autodetect_encoding=True)
-        #documents = self.loader.load()
-        from langchain.indexes import VectorstoreIndexCreator
-        self.index = VectorstoreIndexCreator().from_loaders([self.loader])
-
-    def ask(self, question : str) -> str:
-        output = self.index.query(question)
-        return output
-
-    def extract_details(self) -> str:
-        query_to_extract_info = """Using the document, answer the following questions and output valid json with property names enclosed with double quotes with keys: "is_job_description", "skills_required", "responsibilities", "qualifications", "preferences":
-
-        1. Is this document of a job description? Answer in "True" or "False". The answer should correspond to the "is_job_description" key.
-        2. What are the skills required? The answer should be a json list associated with the "skills_required" key.
-        3. What are the responsibilities? The answer should be a json list associated with the "responsibilities" key.
-        4. What are the qualifications required? The answer should be in the form of a json list associated with the "qualifications" key.
-        5. What are the preferences or preferred qualifications or skills? The answer should be in the form of a json list associated with the preferences key.
-        """ 
-        return self.ask(query_to_extract_info)
-
-class ResumeComparer(object):
-    def __init__(self, resume_details : json, job_description_details : json): 
+class CoverLetterGenerator(object):
+    def __init__(self, resume_details : json):
         self.resume_details = resume_details
-        self.job_description_details = job_description_details
-        self.messages = [{"role": "system", "content" : "You are a sophisticated career advisor who is trying to discern if the resume data matches that of the job description."}]
+        self.messages = [{"role": "system", "content" : "You are a sophisticated career advisor who is helping individuals write cover letters on the basis of their resumes."}]
 
-    def extract_details(self) -> dict:
+    def get_coverletter(self) -> dict:
 
         # Comparison 1.
-        query_to_extract_info = f"""Based on just the two following json objects of resume details and job description details {self.resume_details} and {self.job_description_details},
-        check or suggest the following in a list like fashion:
-        1. Check if the resume details match the job description requirements and qualifications.
-        2. The main differences.
-        3. The similarities.
-        4. Suggest improvements to the resume.
+        query_to_extract_info = f"""Based on just the json object of resume details: {self.resume_details},
+        Generate a cover letter for the most pertinent role that can be inferred.
         """ 
         self.messages.append( {"role": "user", "content": query_to_extract_info} )
         response = openai.ChatCompletion.create(
@@ -94,15 +62,4 @@ class ResumeComparer(object):
             temperature=0, # this is the degree of randomness of the model's output
         )
         response_text = (response.choices[0].message["content"])
-
-        # Chain in comparison.
-        query_specifics = "Provide detailed suggestions that'll make the candidate's chance of getting the said job most probable quoting specific lines in the resume that need to be changed."
-        self.messages.append({"role" : "assistant", "content" : response_text})
-        self.messages.append({"role" : "user", "content" : query_specifics}) 
-
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=self.messages,
-            temperature=0, # this is the degree of randomness of the model's output
-        )
-        return {"summary": response_text, "specifics": response.choices[0].message["content"] }
+        return response_text 

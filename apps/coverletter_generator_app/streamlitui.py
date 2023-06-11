@@ -4,7 +4,6 @@ from langchain.document_loaders import TextLoader
 from langchain.document_loaders import UnstructuredPDFLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
-from langchain.llms import OpenAI
 import streamlit as st
 from streamlit_chat import message
 from langchain.text_splitter import CharacterTextSplitter
@@ -14,33 +13,14 @@ import uuid
 import openai
 import os
 import tempfile
-from resume_comparer import ResumeExtractor, JobDescriptionExtractor, ResumeComparer
+from coverletter_generator import ResumeExtractor, CoverLetterGenerator
 
-st.set_page_config(page_title="Resume Chain - Upload a Resume, Add a Job Description and Get Details.")
+st.set_page_config(page_title="Cover Letter Generator - Upload a 1-Page Resume and Get Back a Cover Letter.")
 
 def display_messages():
-    st.subheader("Chat")
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
-
-def process_input():
-    if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0 and st.session_state["resume_details"] != None:
-        user_text = st.session_state["user_input"]
-        with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=".txt") as tf:
-            tf.write(str(user_text))
-        job_description_extractor = JobDescriptionExtractor(tf.name)
-        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            job_description_details = json.loads(job_description_extractor.extract_details())
-            comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
-            details = comparison.extract_details()
-
-            st.session_state["messages"].append((details["summary"], False))
-            st.session_state["messages"].append((details["specifics"], False))
-        try:
-            os.remove(tf.name)
-        except Exception as e:
-            print(e)
 
 def read_and_save_file():
     st.session_state["messages"] = []
@@ -54,12 +34,12 @@ def read_and_save_file():
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             resume_extractor = ResumeExtractor(file_path)
             resume_details = json.loads(resume_extractor.extract_details())
-            if (resume_details["is_resume"] == False):
-                st.session_state["messages"].append(("The pdf you attached is not of a resume. Please upload a pdf of a resume.", False))
-                st.session_state["resume_details"] = None 
-                return
+            if resume_details["is_resume"]:
+                coverletter_generator = CoverLetterGenerator(resume_details)
+                st.session_state["messages"].append((coverletter_generator.get_coverletter(), False))
             else:
-                st.session_state["resume_details"] = resume_details 
+                st.session_state["messages"].append(("The pdf uploaded wasn't that of a Resume.",False))
+
         try:
             os.remove(file_path)
         except Exception as e:
@@ -74,20 +54,11 @@ def run() -> None:
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
-    st.header("Resume Chain: Upload a 1 Page Resume, Add a Job Description and Get Details.")
+    st.header("Cover Letter Generator: Upload a 1-Page Resume, And Get A Cover Letter.")
 
-    if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
-        if (
-            len(st.session_state["input_OPENAI_API_KEY"]) > 0
-            and st.session_state["input_OPENAI_API_KEY"] != st.session_state["OPENAI_API_KEY"]
-        ):
-            st.session_state["OPENAI_API_KEY"] = st.session_state["input_OPENAI_API_KEY"]
-            st.session_state["messages"] = []
-            st.session_state["user_input"] = ""
-
-    st.subheader("Upload a document")
+    st.subheader("Upload a Resume")
     st.file_uploader(
-        "Upload document",
+        "Upload a Resume",
         type=["pdf"],
         key="file_uploader",
         on_change=read_and_save_file,
@@ -98,12 +69,12 @@ def run() -> None:
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    st.text_area("Enter a Job Description", 
-                  key="user_input", 
-                  disabled=not is_openai_api_key_set(), 
-                  on_change=process_input)
-
+    st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
     st.divider()
+    st.text("Made by Moko.")
 
 if __name__ == '__main__':
     run()

@@ -4,7 +4,6 @@ from langchain.document_loaders import TextLoader
 from langchain.document_loaders import UnstructuredPDFLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
-from langchain.llms import OpenAI
 import streamlit as st
 from streamlit_chat import message
 from langchain.text_splitter import CharacterTextSplitter
@@ -34,7 +33,6 @@ def process_input():
             comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
             details = comparison.extract_details()
 
-            #st.session_state["messages"].append((user_text, True))
             st.session_state["messages"].append((details["summary"], False))
             st.session_state["messages"].append((details["specifics"], False))
         try:
