@@ -87,6 +87,7 @@ def run() -> None:
     st.subheader("2. Enter a Job Description")
     st.text_area("Job Description", 
                   key="user_input", 
+                  label_visibility="collapsed",
                   disabled=not is_openai_api_key_set(), 
                   on_change=process_input)
 
