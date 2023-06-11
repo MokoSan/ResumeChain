@@ -70,7 +70,7 @@ def run() -> None:
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
-    st.header("Resume Chain: Upload a Resume, Add a Job Description and Get Details.")
+    st.header("Resume Chain: Upload a 1-Page Resume, Add a Job Description and Get Details.")
     st.session_state["messages"] = []
     st.session_state["user_input"] = ""
 
