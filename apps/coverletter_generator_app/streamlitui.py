@@ -27,25 +27,26 @@ def read_and_save_file():
         st.session_state["messages"] = []
         st.session_state["user_input"] = ""
 
-        for file in st.session_state["file_uploader"]:
-            with tempfile.NamedTemporaryFile(delete=False) as tf:
-                tf.write(file.getbuffer())
-                file_path = tf.name
+        file = st.session_state["file_uploader"]
+        with tempfile.NamedTemporaryFile(delete=False) as tf:
+            tf.write(file.getbuffer())
+            file_path = tf.name
 
-            with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
-                resume_extractor = ResumeExtractor(file_path)
-                resume_details = json.loads(resume_extractor.extract_details())
-                if resume_details["is_resume"]:
-                    coverletter_generator = CoverLetterGenerator(resume_details)
-                    st.session_state["messages"].append((coverletter_generator.get_coverletter(), False))
-                else:
-                    st.session_state["messages"].append(("The pdf uploaded wasn't that of a Resume.",False))
+        with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
+            resume_extractor = ResumeExtractor(file_path)
+            resume_details = json.loads(resume_extractor.extract_details())
+            if resume_details["is_resume"]:
+                coverletter_generator = CoverLetterGenerator(resume_details)
+                st.session_state["messages"].append((coverletter_generator.get_coverletter(), False))
+            else:
+                st.session_state["messages"].append(("The pdf uploaded wasn't that of a Resume.",False))
 
-            try:
-                os.remove(file_path)
-            except Exception as e:
-                print(e)
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            print(e)
     except Exception as ex:
+        print(ex)
         st.session_state["messages"].append(("The pdf uploaded is Invalid and not of a resume. Please upload another one.", False))
         
 
@@ -67,7 +68,7 @@ def run() -> None:
         key="file_uploader",
         on_change=read_and_save_file,
         label_visibility="collapsed",
-        accept_multiple_files=True,
+        accept_multiple_files=False,
         disabled=len(st.session_state["OPENAI_API_KEY"]) <= 0)
 
     st.session_state["ingestion_spinner"] = st.empty()
