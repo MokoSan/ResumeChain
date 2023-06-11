@@ -21,12 +21,12 @@ class ResumeExtractor(object):
         self.path = path
         loader = UnstructuredPDFLoader(path)
         self.pages  = loader.load_and_split()
-        if (len(self.pages) > 1):
-            raise ValueError(f"The resume provided has more than 1 page. Please send a resume with just one page.")
+        if (len(self.pages) > 3):
+            raise ValueError(f"The resume provided has more than 3 pages. Please send a resume with <= 3 pages.")
         embeddings = OpenAIEmbeddings()
 
         # Just one page resumes accepted.
-        self.docsearch = Chroma.from_documents([self.pages[0]], embeddings).as_retriever(search_kwargs={ "k": 1 })
+        self.docsearch = Chroma.from_documents(self.pages, embeddings).as_retriever(search_kwargs={ "k": 1 })
         self.chain = load_qa_chain(OpenAI(temperature=0, max_tokens=2500), chain_type="stuff")
 
     def ask(self, question : str) -> str:
