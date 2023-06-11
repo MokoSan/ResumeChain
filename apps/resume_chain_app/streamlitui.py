@@ -16,10 +16,9 @@ import os
 import tempfile
 from resume_comparer import ResumeExtractor, JobDescriptionExtractor, ResumeComparer
 
-st.set_page_config(page_title="Resume Chain - Upload a Resume, Add a Job Description and Get Details.")
+st.set_page_config(page_title="Resume Chain - Upload a 1-Page Resume, Add a Job Description and Get Details.")
 
 def display_messages():
-    st.subheader("Chat")
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
         message(msg, is_user=is_user, key=str(i))
     st.session_state["thinking_spinner"] = st.empty()
@@ -27,7 +26,6 @@ def display_messages():
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"]
-        print(user_text)
         with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=".txt") as tf:
             tf.write(str(user_text))
         job_description_extractor = JobDescriptionExtractor(tf.name)
@@ -36,6 +34,7 @@ def process_input():
             comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
             details = comparison.extract_details()
 
+            #st.session_state["messages"].append((user_text, True))
             st.session_state["messages"].append((details["summary"], False))
             st.session_state["messages"].append((details["specifics"], False))
         try:
@@ -71,12 +70,10 @@ def run() -> None:
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
     st.header("Resume Chain: Upload a 1-Page Resume, Add a Job Description and Get Details.")
-    st.session_state["messages"] = []
-    st.session_state["user_input"] = ""
 
-    st.subheader("Upload a document")
+    st.subheader("1. Upload a Resume")
     st.file_uploader(
-        "Upload document",
+        "Upload a Resume",
         type=["pdf"],
         key="file_uploader",
         on_change=read_and_save_file,
@@ -87,7 +84,7 @@ def run() -> None:
     st.session_state["ingestion_spinner"] = st.empty()
 
     display_messages()
-    st.text_area("Enter a Job Description", 
+    st.text_area("2. Enter a Job Description", 
                   key="user_input", 
                   disabled=not is_openai_api_key_set(), 
                   on_change=process_input)
