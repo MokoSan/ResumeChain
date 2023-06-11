@@ -1,0 +1,10 @@
+chromadb==0.3.25
+langchain==0.0.190
+unstructured==0.6.2
+openai==0.27.7
+openapi-schema-pydantic==1.2.4
+tiktoken==0.4.0
+python-dotenv==1.0.0
+streamlit==1.23.1
+streamlit-chat==0.0.2.2
+pdfminer.six==20221105
