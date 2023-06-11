@@ -90,8 +90,12 @@ def run() -> None:
                   label_visibility="collapsed",
                   disabled=not is_openai_api_key_set(), 
                   on_change=process_input)
-
+    st.markdown(""" <style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+</style> """, unsafe_allow_html=True)
     st.divider()
+    st.text("Made by Moko.")
 
 if __name__ == '__main__':
     run()
