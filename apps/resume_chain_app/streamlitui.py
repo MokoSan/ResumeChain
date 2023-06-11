@@ -74,14 +74,6 @@ def run() -> None:
     st.session_state["messages"] = []
     st.session_state["user_input"] = ""
 
-    '''
-    if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
-        if (
-            len(st.session_state["input_OPENAI_API_KEY"]) > 0
-            and st.session_state["input_OPENAI_API_KEY"] != st.session_state["OPENAI_API_KEY"]
-        ):
-    '''
-
     st.subheader("Upload a document")
     st.file_uploader(
         "Upload document",
