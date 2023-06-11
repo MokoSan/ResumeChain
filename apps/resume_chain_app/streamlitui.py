@@ -41,10 +41,12 @@ def process_input():
             print(e)
 
 def read_and_save_file():
-    st.session_state["messages"] = []
-    st.session_state["user_input"] = ""
+    try:
+        st.session_state["messages"] = []
+        st.session_state["user_input"] = ""
 
-    for file in st.session_state["file_uploader"]:
+        file = st.session_state["file_uploader"]
+
         with tempfile.NamedTemporaryFile(delete=False) as tf:
             tf.write(file.getbuffer())
             file_path = tf.name
@@ -57,6 +59,9 @@ def read_and_save_file():
             os.remove(file_path)
         except Exception as e:
             print(e)
+    except Exception as ex:
+        print(ex)
+        st.session_state["messages"].append(("Invalid pdf - please upload another.", False))
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
@@ -76,7 +81,7 @@ def run() -> None:
         key="file_uploader",
         on_change=read_and_save_file,
         label_visibility="collapsed",
-        accept_multiple_files=True,
+        accept_multiple_files=False,
         disabled=len(st.session_state["OPENAI_API_KEY"]) <= 0)
 
     st.session_state["ingestion_spinner"] = st.empty()
