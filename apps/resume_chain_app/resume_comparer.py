@@ -51,8 +51,8 @@ class JobDescriptionExtractor(object):
             raise ValueError(f"The path provided: {path} is not a valid path.")
 
         self.path = path
-        self.loader = TextLoader(path)
-        documents = self.loader.load()
+        self.loader = TextLoader(path, autodetect_encoding=True)
+        #documents = self.loader.load()
         from langchain.indexes import VectorstoreIndexCreator
         self.index = VectorstoreIndexCreator().from_loaders([self.loader])
 

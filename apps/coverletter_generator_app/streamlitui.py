@@ -25,20 +25,22 @@ def display_messages():
     st.session_state["thinking_spinner"] = st.empty()
 
 def process_input():
-    if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
+    if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0 and st.session_state["resume_details"] != None:
         user_text = st.session_state["user_input"]
-        with open(f'./job_{str(uuid.uuid1())}.txt', mode = 'w') as tf:
-            tf.write(user_text)
-            job_description_extractor = JobDescriptionExtractor(tf.name)
-            with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-                job_description_details = json.loads(job_description_extractor.extract_details())
-                comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
-                details = comparison.extract_details
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=".txt") as tf:
+            tf.write(str(user_text))
+        job_description_extractor = JobDescriptionExtractor(tf.name)
+        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+            job_description_details = json.loads(job_description_extractor.extract_details())
+            comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
+            details = comparison.extract_details()
 
-                st.session_state["messages"].append((user_text, True))
-                st.session_state["messages"].append((details["summary"], False))
-                st.session_state["messages"].append((details["specifics"], False))
-        os.remove(tf)
+            st.session_state["messages"].append((details["summary"], False))
+            st.session_state["messages"].append((details["specifics"], False))
+        try:
+            os.remove(tf.name)
+        except Exception as e:
+            print(e)
 
 def read_and_save_file():
     st.session_state["messages"] = []
@@ -52,8 +54,16 @@ def read_and_save_file():
         with st.session_state["ingestion_spinner"], st.spinner(f"Ingesting {file.name}"):
             resume_extractor = ResumeExtractor(file_path)
             resume_details = json.loads(resume_extractor.extract_details())
-            st.session_state["resume_details"] = resume_details 
-        os.remove(file_path)
+            if (resume_details["is_resume"] == False):
+                st.session_state["messages"].append(("The pdf you attached is not of a resume. Please upload a pdf of a resume.", False))
+                st.session_state["resume_details"] = None 
+                return
+            else:
+                st.session_state["resume_details"] = resume_details 
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            print(e)
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
@@ -64,7 +74,7 @@ def run() -> None:
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
-    st.header("Resume Chain - Upload a Resume, Add a Job Description and Get Details.")
+    st.header("Resume Chain: Upload a 1 Page Resume, Add a Job Description and Get Details.")
 
     if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
         if (

@@ -27,18 +27,22 @@ def display_messages():
 def process_input():
     if st.session_state["user_input"] and len(st.session_state["user_input"].strip()) > 0:
         user_text = st.session_state["user_input"]
-        with open(f'./job_{str(uuid.uuid1())}.txt', mode = 'w') as tf:
-            tf.write(user_text)
-            job_description_extractor = JobDescriptionExtractor(tf.name)
-            with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-                job_description_details = json.loads(job_description_extractor.extract_details())
-                comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
-                details = comparison.extract_details
+        print(user_text)
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+', suffix=".txt") as tf:
+            tf.write(str(user_text))
+        job_description_extractor = JobDescriptionExtractor(tf.name)
+        with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
+            job_description_details = json.loads(job_description_extractor.extract_details())
+            comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
+            details = comparison.extract_details()
 
-                st.session_state["messages"].append((user_text, True))
-                st.session_state["messages"].append((details["summary"], False))
-                st.session_state["messages"].append((details["specifics"], False))
-        os.remove(tf)
+            #st.session_state["messages"].append((user_text, True))
+            st.session_state["messages"].append((details["summary"], False))
+            st.session_state["messages"].append((details["specifics"], False))
+        try:
+            os.remove(tf.name)
+        except Exception as e:
+            print(e)
 
 def read_and_save_file():
     st.session_state["messages"] = []
@@ -53,7 +57,10 @@ def read_and_save_file():
             resume_extractor = ResumeExtractor(file_path)
             resume_details = json.loads(resume_extractor.extract_details())
             st.session_state["resume_details"] = resume_details 
-        os.remove(file_path)
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            print(e)
 
 def is_openai_api_key_set() -> bool:
     return len(st.session_state["OPENAI_API_KEY"]) > 0
@@ -64,7 +71,7 @@ def run() -> None:
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
-    st.header("Resume Chain - Upload a Resume, Add a Job Description and Get Details.")
+    st.header("Resume Chain: Upload a Resume, Add a Job Description and Get Details.")
 
     if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
         if (

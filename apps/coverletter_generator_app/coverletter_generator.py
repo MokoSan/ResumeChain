@@ -51,14 +51,25 @@ class JobDescriptionExtractor(object):
             raise ValueError(f"The path provided: {path} is not a valid path.")
 
         self.path = path
-        self.loader = TextLoader(path)
-        documents = self.loader.load()
+        self.loader = TextLoader(path, autodetect_encoding=True)
+        #documents = self.loader.load()
         from langchain.indexes import VectorstoreIndexCreator
         self.index = VectorstoreIndexCreator().from_loaders([self.loader])
 
     def ask(self, question : str) -> str:
         output = self.index.query(question)
         return output
+
+    def extract_details(self) -> str:
+        query_to_extract_info = """Using the document, answer the following questions and output valid json with property names enclosed with double quotes with keys: "is_job_description", "skills_required", "responsibilities", "qualifications", "preferences":
+
+        1. Is this document of a job description? Answer in "True" or "False". The answer should correspond to the "is_job_description" key.
+        2. What are the skills required? The answer should be a json list associated with the "skills_required" key.
+        3. What are the responsibilities? The answer should be a json list associated with the "responsibilities" key.
+        4. What are the qualifications required? The answer should be in the form of a json list associated with the "qualifications" key.
+        5. What are the preferences or preferred qualifications or skills? The answer should be in the form of a json list associated with the preferences key.
+        """ 
+        return self.ask(query_to_extract_info)
 
 class ResumeComparer(object):
     def __init__(self, resume_details : json, job_description_details : json): 
