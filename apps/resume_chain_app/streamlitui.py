@@ -15,7 +15,7 @@ import os
 import tempfile
 from resume_comparer import ResumeExtractor, JobDescriptionExtractor, ResumeComparer
 
-st.set_page_config(page_title="Resume Chain - Upload a 1-Page Resume, Add a Job Description and Get Details.")
+st.set_page_config(page_title="Resume Chain - Upload a Resume, Add a Job Description and Get Details.")
 
 def display_messages():
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
@@ -29,8 +29,12 @@ def process_input():
             tf.write(str(user_text))
         job_description_extractor = JobDescriptionExtractor(tf.name)
         with st.session_state["thinking_spinner"], st.spinner(f"Thinking"):
-            job_description_details = json.loads(job_description_extractor.extract_details())
-            comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
+            job_description_details = job_description_extractor.extract_details()
+            print(job_description_details)
+            job_description_details = job_description_details
+            resume_details = st.session_state["resume_details"]
+            print(f"Extracted Resume Details: {resume_details} | Job Description Details: {job_description_details}")
+            comparison = ResumeComparer(resume_details, job_description_details)
             details = comparison.extract_details()
 
             st.session_state["messages"].append((details["summary"], False))
@@ -72,7 +76,7 @@ def run() -> None:
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
-    st.header("Resume Chain: Upload a 1-Page Resume, Add a Job Description and Get Details.")
+    st.header("Resume Chain: Upload a Resume, Add a Job Description and Get Details.")
 
     st.subheader("1. Upload a Resume")
     st.file_uploader(
