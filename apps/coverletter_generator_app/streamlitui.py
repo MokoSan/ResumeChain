@@ -15,7 +15,7 @@ import os
 import tempfile
 from coverletter_generator import ResumeExtractor, CoverLetterGenerator
 
-st.set_page_config(page_title="Cover Letter Generator - Upload a 1-Page Resume and Get Back a Cover Letter.")
+st.set_page_config(page_title="Cover Letter Generator - Upload a Resume and Get Back a Cover Letter.")
 
 def display_messages():
     for i, (msg, is_user) in enumerate(st.session_state["messages"]):
@@ -59,9 +59,9 @@ def run() -> None:
         st.session_state["messages"] = []
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
-    st.header("Cover Letter Generator: Upload a 1-Page Resume, And Get A Cover Letter.")
+    st.header("Cover Letter Generator: Upload a Resume, And Get A Cover Letter.")
 
-    st.subheader("Upload a Resume")
+    st.subheader("Upload a Resume Upto 3 Pages")
     st.file_uploader(
         "Upload a Resume",
         type=["pdf"],
