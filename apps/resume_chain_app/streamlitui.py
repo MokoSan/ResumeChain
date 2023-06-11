@@ -36,7 +36,6 @@ def process_input():
             comparison = ResumeComparer(st.session_state["resume_details"], job_description_details)
             details = comparison.extract_details()
 
-            #st.session_state["messages"].append((user_text, True))
             st.session_state["messages"].append((details["summary"], False))
             st.session_state["messages"].append((details["specifics"], False))
         try:
@@ -72,15 +71,16 @@ def run() -> None:
         st.session_state["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY") 
 
     st.header("Resume Chain: Upload a Resume, Add a Job Description and Get Details.")
+    st.session_state["messages"] = []
+    st.session_state["user_input"] = ""
 
+    '''
     if st.text_input("OpenAI API Key", value=st.session_state["OPENAI_API_KEY"], key="input_OPENAI_API_KEY", type="password"):
         if (
             len(st.session_state["input_OPENAI_API_KEY"]) > 0
             and st.session_state["input_OPENAI_API_KEY"] != st.session_state["OPENAI_API_KEY"]
         ):
-            st.session_state["OPENAI_API_KEY"] = st.session_state["input_OPENAI_API_KEY"]
-            st.session_state["messages"] = []
-            st.session_state["user_input"] = ""
+    '''
 
     st.subheader("Upload a document")
     st.file_uploader(
