@@ -97,10 +97,11 @@ class ResumeComparer(object):
         # Comparison 1.
         query_to_extract_info = f"""Based on just the two following json objects of resume details and job description details {self.resume_details} and {self.job_description_details},
         check or suggest the following in a list like fashion:
-        1. Check if the resume details match the job description requirements and qualifications.
-        2. The main differences.
-        3. The similarities.
-        4. Suggest improvements to the resume.
+        1. Check if the resume details match the job description requirements and qualifications. More specifically, check if years of experience calculated from the years since graduation and in the industry match the expected years of experience from the job description.
+        2. The main differences including highlighting if the work experience doesn't demonstrate the skillset mentioned.
+        3. Missing certifications and other missing requirements in the resume that's expected in the job description.
+        3. The similarities and match.
+        4. Suggest improvements to the resume. These suggestions must be honest, apt and concise to give the candidate the exact details needed to improve their resume.
         """ 
         self.messages.append( {"role": "user", "content": query_to_extract_info} )
         response = openai.ChatCompletion.create(
